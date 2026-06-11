@@ -1,8 +1,14 @@
-const CACHE_NAME = 'bolao-copa-v3';
+const CACHE_NAME = 'bolao-copa-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icons/launchericon-48x48.png',
+  '/icons/launchericon-72x72.png',
+  '/icons/launchericon-96x96.png',
+  '/icons/launchericon-144x144.png',
+  '/icons/launchericon-192x192.png',
+  '/icons/launchericon-512x512.png',
   'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js'
 ];
 
