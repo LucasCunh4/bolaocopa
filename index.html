@@ -230,7 +230,7 @@
             margin-left: -1em;
         }
 
-        input[type="text"] {
+        input[type="text"], select {
             width: 100%;
             padding: 1.2rem;
             font-size: 1rem;
@@ -243,7 +243,7 @@
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input[type="text"]:focus {
+        input[type="text"]:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
         }
@@ -654,7 +654,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 3000; /* Acima do menu lateral */
+            z-index: 3000;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
@@ -707,6 +707,96 @@
             padding: 1rem;
             flex: 1;
         }
+
+        /* View Palpites Styles */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+        .group-view-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: var(--shadow-sm);
+        }
+        .group-view-title {
+            text-align: center;
+            font-weight: 800;
+            color: #818CF8;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        .group-view-team {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-weight: 600;
+        }
+        .group-view-team:last-child { border-bottom: none; }
+        .group-view-team.is-advanced { color: #10B981; }
+        .group-view-team.is-eliminated { opacity: 0.4; font-weight: 400; }
+        .group-view-team span.pos { font-weight: bold; width: 16px; color: var(--text-sec); }
+
+        .bracket-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .bracket-phase-title {
+            font-weight: 800;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .bracket-matches {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .bracket-match {
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .bracket-team {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .bracket-team:last-child { border-bottom: none; }
+        .bracket-team.is-winner { background: rgba(99, 102, 241, 0.15); color: #818CF8; }
+        .bracket-team.is-loser { opacity: 0.4; }
+
+        .awards-view-list {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+        .awards-view-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .awards-view-item:last-child { border-bottom: none; }
+        .awards-view-label { font-weight: 700; color: var(--text-sec); font-size: 0.9rem; }
+        .awards-view-value { font-weight: 800; color: var(--primary); font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -720,6 +810,7 @@
         <a href="#" onclick="navigateMenu('screen-home')">🏠 Início</a>
         <a href="#" onclick="navigateMenu('screen-name')">📝 Novo Palpite</a>
         <a href="#" onclick="navigateMenu('screen-results')">📊 Área de Resultados</a>
+        <a href="#" onclick="navigateMenu('screen-view-palpites')">👀 Ver Palpites</a>
     </div>
 
     <header>
@@ -731,7 +822,7 @@
         <!-- TELA 0: Início -->
         <div id="screen-home" class="screen active">
             <h2>Bem-vindo!</h2>
-            <p>A Copa do Mundo começou! Dê seus palpites!</p>
+            <p>Faça suas apostas, convide os amigos e descubra quem é o mestre dos palpites.</p>
             <button class="btn" onclick="navigateMenu('screen-name')">Criar Meu Palpite</button>
         </div>
 
@@ -924,6 +1015,29 @@
             
             <button class="btn btn-warning" id="btn-next-reveal" onclick="triggerReveal()">Revelar Posição</button>
         </div>
+
+        <!-- TELA 9: Visualizar Palpites -->
+        <div id="screen-view-palpites" class="screen">
+            <h2>Visualizar Palpites</h2>
+            <p>Inspecione o chaveamento e as escolhas detalhadas de cada participante.</p>
+            
+            <select id="viewer-select" onchange="renderSelectedPalpite()">
+                <option value="">Selecione um palpite...</option>
+                <!-- Opções injetadas via JS -->
+            </select>
+
+            <div id="viewer-content" style="display:none;">
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem; color:var(--text-main);">Fase de Grupos</h3>
+                <div id="view-groups" class="groups-grid"></div>
+
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem; color:var(--text-main);">Chaveamento (Mata-Mata)</h3>
+                <div id="view-knockout" class="bracket-container"></div>
+
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem; color:var(--text-main);">Prêmios Individuais</h3>
+                <div id="view-awards" class="awards-view-list"></div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Custom Modal -->
@@ -983,13 +1097,14 @@
 
         function navigateMenu(targetScreen) {
             closeMenu();
-            if (isDrafting && (targetScreen === 'screen-home' || targetScreen === 'screen-results')) {
+            if (isDrafting && (targetScreen === 'screen-home' || targetScreen === 'screen-results' || targetScreen === 'screen-view-palpites')) {
                 showModal('Confirmar Saída', 'Deseja mesmo sair? Todo o progresso do seu palpite será perdido.', true, () => {
                     isDrafting = false;
                     showScreen(targetScreen);
                 });
             } else {
                 if(targetScreen === 'screen-results') openResults();
+                else if(targetScreen === 'screen-view-palpites') openViewPalpites();
                 else showScreen(targetScreen);
             }
         }
@@ -1373,6 +1488,7 @@
 
         // --- IMPORTAÇÃO E RESULTADOS ---
         function openResults() {
+            updateViewerSelect(); // Atualiza a lista do visualizador sempre que abre resultados
             renderImportedLists();
             showScreen('screen-results');
         }
@@ -1392,6 +1508,7 @@
                     localStorage.setItem('bolao_gabarito', JSON.stringify(gabaritoOficial));
                     document.getElementById('import-textarea').value = '';
                     renderImportedLists();
+                    updateViewerSelect();
                     showModal('Gabarito', 'Gabarito Oficial definido com sucesso! Agora você pode apurar os pontos.');
                 } else {
                     if(!data.name) throw new Error("Sem Nome");
@@ -1402,6 +1519,7 @@
                     localStorage.setItem('bolao_palpites', JSON.stringify(importedPalpites));
                     document.getElementById('import-textarea').value = '';
                     renderImportedLists();
+                    updateViewerSelect();
                     showModal('Adicionado', `O palpite de ${data.name} foi registrado.`);
                 }
             } catch(e) {
@@ -1444,6 +1562,7 @@
                 importedPalpites.splice(idx, 1);
                 localStorage.setItem('bolao_palpites', JSON.stringify(importedPalpites));
                 renderImportedLists();
+                updateViewerSelect();
             });
         }
 
@@ -1456,7 +1575,6 @@
             }
             if (!gabaritoOficial.awards.worstTeam) gabaritoOficial.awards.worstTeam = '';
 
-            // Filtro avançado para comparação de texto imune a acentos e maiúsculas
             const normalize = str => str ? str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
             importedPalpites.forEach(p => {
@@ -1720,6 +1838,129 @@
                 toggleRanking(); 
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             }
+        }
+
+        // --- VER PALPITES (VISUALIZADOR) ---
+        function openViewPalpites() {
+            updateViewerSelect();
+            showScreen('screen-view-palpites');
+        }
+
+        function updateViewerSelect() {
+            const select = document.getElementById('viewer-select');
+            if(!select) return;
+
+            select.innerHTML = '<option value="">Selecione um palpite...</option>';
+            if (gabaritoOficial) {
+                select.innerHTML += `<option value="gabarito">⭐ Gabarito Oficial</option>`;
+            }
+            importedPalpites.forEach((p, idx) => {
+                select.innerHTML += `<option value="${idx}">👤 ${p.name}</option>`;
+            });
+        }
+
+        function renderSelectedPalpite() {
+            const select = document.getElementById('viewer-select');
+            const content = document.getElementById('viewer-content');
+            const val = select.value;
+
+            if (val === "") {
+                content.style.display = "none";
+                return;
+            }
+
+            const data = (val === 'gabarito') ? gabaritoOficial : importedPalpites[val];
+
+            // Proteção de propriedades legadas
+            if(!data.awards) data.awards = { topScorer: '', assists: '', goalkeeper: '', youngPlayer: '', worstTeam: '' };
+            if(!data.awards.worstTeam) data.awards.worstTeam = '';
+
+            // Render Groups
+            const viewGroups = document.getElementById('view-groups');
+            viewGroups.innerHTML = '';
+            groupKeys.forEach(key => {
+                const teams = data.groupsOrder[key] || [];
+                const isThirdSelected = data.selectedThirds.includes(key);
+
+                let html = `<div class="group-view-card">
+                    <div class="group-view-title">Grupo ${key}</div>`;
+                
+                teams.forEach((t, i) => {
+                    let cssClass = "";
+                    if (i === 0 || i === 1) cssClass = "is-advanced";
+                    else if (i === 2 && isThirdSelected) cssClass = "is-advanced";
+                    else cssClass = "is-eliminated";
+
+                    html += `<div class="group-view-team ${cssClass}">
+                        <span class="pos">${i+1}</span> ${getTeamDisplay(t)}
+                    </div>`;
+                });
+                html += `</div>`;
+                viewGroups.innerHTML += html;
+            });
+
+            // Render Knockout
+            const viewKnockout = document.getElementById('view-knockout');
+            viewKnockout.innerHTML = '';
+            
+            const phasesToRender = [
+                { key: 'r32', title: '16 Avos de Final' },
+                { key: 'r16', title: 'Oitavas de Final' },
+                { key: 'qf', title: 'Quartas de Final' },
+                { key: 'sf', title: 'Semifinais' },
+                { key: 'thirdPlace', title: 'Disputa do 3º Lugar' },
+                { key: 'final', title: 'Grande Final' }
+            ];
+
+            phasesToRender.forEach(ph => {
+                const matches = data.knockout[ph.key] || [];
+                if(matches.length === 0) return;
+
+                let html = `<div>
+                    <div class="bracket-phase-title">${ph.title}</div>
+                    <div class="bracket-matches">`;
+                
+                matches.forEach(m => {
+                    const t1WinnerClass = m.winner === m.t1 ? 'is-winner' : (m.winner ? 'is-loser' : '');
+                    const t2WinnerClass = m.winner === m.t2 ? 'is-winner' : (m.winner ? 'is-loser' : '');
+                    
+                    html += `
+                    <div class="bracket-match">
+                        <div class="bracket-team ${t1WinnerClass}">${getTeamDisplay(m.t1 || '?')}</div>
+                        <div class="bracket-team ${t2WinnerClass}">${getTeamDisplay(m.t2 || '?')}</div>
+                    </div>`;
+                });
+
+                html += `</div></div>`;
+                viewKnockout.innerHTML += html;
+            });
+
+            // Render Awards
+            const viewAwards = document.getElementById('view-awards');
+            viewAwards.innerHTML = `
+                <div class="awards-view-item">
+                    <span class="awards-view-label">Artilheiro:</span>
+                    <span class="awards-view-value">${data.awards.topScorer || '-'}</span>
+                </div>
+                <div class="awards-view-item">
+                    <span class="awards-view-label">Assistências:</span>
+                    <span class="awards-view-value">${data.awards.assists || '-'}</span>
+                </div>
+                <div class="awards-view-item">
+                    <span class="awards-view-label">Goleiro:</span>
+                    <span class="awards-view-value">${data.awards.goalkeeper || '-'}</span>
+                </div>
+                <div class="awards-view-item">
+                    <span class="awards-view-label">Revelação:</span>
+                    <span class="awards-view-value">${data.awards.youngPlayer || '-'}</span>
+                </div>
+                <div class="awards-view-item">
+                    <span class="awards-view-label">Pior Seleção:</span>
+                    <span class="awards-view-value">${data.awards.worstTeam || '-'}</span>
+                </div>
+            `;
+
+            content.style.display = "block";
         }
 
         // --- REGISTRO DO SERVICE WORKER (PWA) ---
