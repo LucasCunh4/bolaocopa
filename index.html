@@ -708,7 +708,7 @@
             flex: 1;
         }
 
-        /* View Palpites Styles */
+        /* View Palpites Styles (Grupos) */
         .groups-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -743,43 +743,73 @@
         .group-view-team.is-eliminated { opacity: 0.4; font-weight: 400; }
         .group-view-team span.pos { font-weight: bold; width: 16px; color: var(--text-sec); }
 
-        .bracket-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        .bracket-phase-title {
-            font-weight: 800;
-            color: var(--text-main);
-            font-size: 1.2rem;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
-        .bracket-matches {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        .bracket-match {
-            background: var(--card-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-        .bracket-team {
-            padding: 10px;
+        /* View Palpites Styles (Chaveamento Clássico) */
+        .bracket-wrapper {
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-bottom: 1px solid var(--border);
+            align-items: center;
+            padding: 10px;
+            gap: 15px;
+            overflow-x: auto;
+            width: 100%;
         }
-        .bracket-team:last-child { border-bottom: none; }
-        .bracket-team.is-winner { background: rgba(99, 102, 241, 0.15); color: #818CF8; }
-        .bracket-team.is-loser { opacity: 0.4; }
+        
+        .bracket-side {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+        
+        .bracket-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 10px;
+        }
+        
+        .bracket-center {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            min-width: 160px;
+        }
+        
+        .bracket-match {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.8rem;
+            position: relative;
+            min-width: 140px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .bracket-team {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .bracket-team:last-child {
+            border-bottom: none;
+        }
+        
+        .bracket-team.is-winner { color: var(--primary); font-weight: 800; }
+        .bracket-team.is-loser { opacity: 0.5; font-weight: 400; }
+        
+        .bracket-title {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-sec);
+            margin-bottom: 4px;
+            font-weight: 800;
+        }
 
         .awards-view-list {
             background: var(--card-bg);
@@ -1031,7 +1061,7 @@
                 <div id="view-groups" class="groups-grid"></div>
 
                 <h3 style="margin-top: 2rem; margin-bottom: 1rem; color:var(--text-main);">Chaveamento (Mata-Mata)</h3>
-                <div id="view-knockout" class="bracket-container"></div>
+                <div id="view-knockout"></div>
 
                 <h3 style="margin-top: 2rem; margin-bottom: 1rem; color:var(--text-main);">Prêmios Individuais</h3>
                 <div id="view-awards" class="awards-view-list"></div>
@@ -1109,7 +1139,6 @@
             }
         }
 
-
         // --- SISTEMA DE PREVENÇÃO DE PERDA DE DADOS (Navegador Nativo) ---
         let isDrafting = false;
         
@@ -1119,7 +1148,6 @@
                 e.returnValue = "Deseja mesmo sair da página? Todo o progresso do seu palpite será perdido.";
             }
         });
-
 
         // --- DADOS DA COPA 2026 ---
         const flags = {
@@ -1205,7 +1233,7 @@
             document.getElementById('input-young-player').value = '';
             document.getElementById('input-worst-team').value = '';
 
-            isDrafting = true; // Ativa a prevenção de perda de dados
+            isDrafting = true;
             showScreen('screen-rules');
         });
 
@@ -1488,7 +1516,7 @@
 
         // --- IMPORTAÇÃO E RESULTADOS ---
         function openResults() {
-            updateViewerSelect(); // Atualiza a lista do visualizador sempre que abre resultados
+            updateViewerSelect();
             renderImportedLists();
             showScreen('screen-results');
         }
@@ -1658,7 +1686,7 @@
                 if (betP.p2 && betP.p2 === offP.p2) { score += 22; p.hits.podium.push(`Vice (${betP.p2})`); }
                 if (betP.p1 && betP.p1 === offP.p1) { score += 25; p.hits.podium.push(`Campeão (${betP.p1})`); }
 
-                // 3. Prêmios Individuais (Gabarito é a fonte oficial do nome)
+                // 3. Prêmios Individuais
                 if (normalize(p.awards.topScorer) === normalize(gabaritoOficial.awards.topScorer) && normalize(gabaritoOficial.awards.topScorer) !== "") { 
                     score += 15; 
                     p.hits.awards.push(`${gabaritoOficial.awards.topScorer} (Artilheiro)`); 
@@ -1871,7 +1899,6 @@
 
             const data = (val === 'gabarito') ? gabaritoOficial : importedPalpites[val];
 
-            // Proteção de propriedades legadas
             if(!data.awards) data.awards = { topScorer: '', assists: '', goalkeeper: '', youngPlayer: '', worstTeam: '' };
             if(!data.awards.worstTeam) data.awards.worstTeam = '';
 
@@ -1899,41 +1926,67 @@
                 viewGroups.innerHTML += html;
             });
 
-            // Render Knockout
+            // Render Chaveamento Clássico (Esquerda, Centro, Direita)
             const viewKnockout = document.getElementById('view-knockout');
-            viewKnockout.innerHTML = '';
             
-            const phasesToRender = [
-                { key: 'r32', title: '16 Avos de Final' },
-                { key: 'r16', title: 'Oitavas de Final' },
-                { key: 'qf', title: 'Quartas de Final' },
-                { key: 'sf', title: 'Semifinais' },
-                { key: 'thirdPlace', title: 'Disputa do 3º Lugar' },
-                { key: 'final', title: 'Grande Final' }
-            ];
+            const renderMatch = (m, title) => {
+                if(!m) return '';
+                const t1Class = m.winner === m.t1 ? 'is-winner' : (m.winner ? 'is-loser' : '');
+                const t2Class = m.winner === m.t2 ? 'is-winner' : (m.winner ? 'is-loser' : '');
+                return `
+                <div class="bracket-match">
+                    <div class="bracket-title">${title}</div>
+                    <div class="bracket-team ${t1Class}">${getTeamDisplay(m.t1 || '?')}</div>
+                    <div class="bracket-team ${t2Class}">${getTeamDisplay(m.t2 || '?')}</div>
+                </div>`;
+            };
 
-            phasesToRender.forEach(ph => {
-                const matches = data.knockout[ph.key] || [];
-                if(matches.length === 0) return;
-
-                let html = `<div>
-                    <div class="bracket-phase-title">${ph.title}</div>
-                    <div class="bracket-matches">`;
-                
+            const buildCol = (matches, phaseName) => {
+                if(!matches || matches.length === 0) return '';
+                let html = `<div class="bracket-col">`;
                 matches.forEach(m => {
-                    const t1WinnerClass = m.winner === m.t1 ? 'is-winner' : (m.winner ? 'is-loser' : '');
-                    const t2WinnerClass = m.winner === m.t2 ? 'is-winner' : (m.winner ? 'is-loser' : '');
-                    
-                    html += `
-                    <div class="bracket-match">
-                        <div class="bracket-team ${t1WinnerClass}">${getTeamDisplay(m.t1 || '?')}</div>
-                        <div class="bracket-team ${t2WinnerClass}">${getTeamDisplay(m.t2 || '?')}</div>
-                    </div>`;
+                    html += renderMatch(m, phaseName);
                 });
+                html += `</div>`;
+                return html;
+            };
 
-                html += `</div></div>`;
-                viewKnockout.innerHTML += html;
-            });
+            const k = data.knockout;
+            const r32L = (k.r32 || []).slice(0, 8);
+            const r32R = (k.r32 || []).slice(8, 16);
+            const r16L = (k.r16 || []).slice(0, 4);
+            const r16R = (k.r16 || []).slice(4, 8);
+            const qfL  = (k.qf || []).slice(0, 2);
+            const qfR  = (k.qf || []).slice(2, 4);
+            const sfL  = (k.sf || []).slice(0, 1);
+            const sfR  = (k.sf || []).slice(1, 2);
+
+            let centerHtml = `<div class="bracket-center">`;
+            if (k.final && k.final[0]) {
+                centerHtml += renderMatch(k.final[0], '🏆 GRANDE FINAL');
+            }
+            if (k.thirdPlace && k.thirdPlace[0]) {
+                centerHtml += renderMatch(k.thirdPlace[0], '🥉 3º LUGAR');
+            }
+            centerHtml += `</div>`;
+
+            viewKnockout.innerHTML = `
+                <div class="bracket-wrapper">
+                    <div class="bracket-side">
+                        ${buildCol(r32L, '16 Avos')}
+                        ${buildCol(r16L, 'Oitavas')}
+                        ${buildCol(qfL, 'Quartas')}
+                        ${buildCol(sfL, 'Semi')}
+                    </div>
+                    ${centerHtml}
+                    <div class="bracket-side">
+                        ${buildCol(sfR, 'Semi')}
+                        ${buildCol(qfR, 'Quartas')}
+                        ${buildCol(r16R, 'Oitavas')}
+                        ${buildCol(r32R, '16 Avos')}
+                    </div>
+                </div>
+            `;
 
             // Render Awards
             const viewAwards = document.getElementById('view-awards');
